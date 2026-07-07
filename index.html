@@ -638,17 +638,22 @@
           const data = await res.json();
           fileStoreTableBody.innerHTML = '';
 
-          if (!data.files || data.files.length === 0) {
+          const documents = data.stores || data.files || [];
+          if (!Array.isArray(documents) || documents.length === 0) {
             fileStoreTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #7d8dbb; padding: 24px;">No files found in FileSearchStore.</td></tr>`;
             return;
           }
 
-          data.files.forEach(file => {
+          documents.forEach(file => {
+            const fileName = file.displayName || file.name || file.filename || 'Unknown';
+            const fileId = file.name || file.id || file.file_id || file.fileId || file.documentName || 'N/A';
+            const fileSize = file.sizeBytes != null ? `${(Number(file.sizeBytes) / 1024).toFixed(1)} KB` : file.size != null ? `${(Number(file.size) / 1024).toFixed(1)} KB` : 'N/A';
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
-              <td>${file.filename || file.name || 'Unknown'}</td>
-              <td class="text-muted">${file.id || file.file_id || 'N/A'}</td>
-              <td class="text-muted">${file.bytes ? (file.bytes / 1024).toFixed(1) + ' KB' : 'N/A'}</td>
+              <td>${fileName}</td>
+              <td class="text-muted">${fileId}</td>
+              <td class="text-muted">${fileSize}</td>
             `;
             fileStoreTableBody.appendChild(tr);
           });
