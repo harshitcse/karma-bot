@@ -397,8 +397,9 @@
                   <thead>
                     <tr>
                       <th>File Name</th>
-                      <th>File ID</th>
+                      <th>Document Name</th>
                       <th>Size</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody id="fileStoreTableBody">
@@ -646,14 +647,15 @@
 
           documents.forEach(file => {
             const fileName = file.displayName || file.name || file.filename || 'Unknown';
-            const fileId = file.name || file.id || file.file_id || file.fileId || file.documentName || 'N/A';
+            const documentName = file.name || file.documentName || 'N/A';
             const fileSize = file.sizeBytes != null ? `${(Number(file.sizeBytes) / 1024).toFixed(1)} KB` : file.size != null ? `${(Number(file.size) / 1024).toFixed(1)} KB` : 'N/A';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
               <td>${fileName}</td>
-              <td class="text-muted">${fileId}</td>
+              <td class="text-muted">${documentName}</td>
               <td class="text-muted">${fileSize}</td>
+              <td><button class="delete-btn" data-document-name="${documentName}">Delete</button></td>
             `;
             fileStoreTableBody.appendChild(tr);
           });
@@ -716,6 +718,41 @@
 
       refreshFilesBtn.addEventListener('click', () => {
         fetchFileStoreList();
+      });
+
+      fileStoreTableBody.addEventListener('click', async (event) => {
+        if (!event.target.matches('.delete-btn')) return;
+        const documentName = event.target.dataset.documentName;
+        if (!documentName) return;
+
+        const confirmed = window.confirm('Delete this FileSearchStore document? This cannot be undone.');
+        if (!confirmed) return;
+
+        event.target.disabled = true;
+        event.target.textContent = 'Deleting...';
+
+        try {
+          const res = await fetch('https://ew6ncuetjrbgzw6bdklilvsqaa0wrqua.lambda-url.ca-central-1.on.aws/delete_file', {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+              'Content-Type': 'application/json',
+              api_access_token: apiToken.value.trim(),
+            },
+            body: JSON.stringify({ document_name: documentName }),
+          });
+
+          const body = await res.json().catch(() => null);
+          if (!res.ok) {
+            throw new Error((body && body.error) || `Delete failed (${res.status})`);
+          }
+
+          fetchFileStoreList();
+        } catch (err) {
+          alert(err.message || 'Delete failed');
+          event.target.disabled = false;
+          event.target.textContent = 'Delete';
+        }
       });
     </script>
   </body>
