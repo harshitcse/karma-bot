@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>arhamvijja chat agent</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: radial-gradient(circle at top, rgba(88, 130, 255, 0.15), transparent 35%),
+          radial-gradient(circle at bottom right, rgba(170, 255, 234, 0.14), transparent 34%),
+          #070b18;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        color: #f1f6ff;
+        background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05), transparent 55%), #090d1a;
+      }
+
+      .client-shell {
+        width: min(100%, 1200px);
+        padding: 24px;
+      }
+
+      .card {
+        width: 100%;
+        min-height: 90vh;
+        background: rgba(8, 13, 29, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 32px;
+        box-shadow: 0 40px 120px rgba(0, 0, 0, 0.18);
+        padding: 30px;
+        display: grid;
+        gap: 22px;
+        grid-template-rows: auto auto 1fr;
+      }
+
+      .topbar {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-start;
+      }
+
+      .topbar h1 {
+        margin: 0;
+        font-size: clamp(2.2rem, 3vw, 3.4rem);
+        line-height: 1.02;
+      }
+
+      .topbar p {
+        margin: 10px 0 0;
+        color: #a1b0d8;
+        max-width: 720px;
+        line-height: 1.7;
+      }
+
+      /* Navigation Tabs styling */
+      .tab-navigation {
+        display: flex;
+        gap: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 4px;
+      }
+
+      .tab-btn {
+        background: transparent;
+        border: none;
+        color: #7d8dbb;
+        padding: 10px 20px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+      }
+
+      .tab-btn:hover {
+        color: #eef3ff;
+        background: rgba(255, 255, 255, 0.04);
+        transform: none;
+      }
+
+      .tab-btn.active {
+        color: #061323;
+        background: linear-gradient(135deg, #85a6ff, #9aebff);
+      }
+
+      /* Tab Content Views */
+      .tab-view {
+        display: none;
+        flex-direction: column;
+        gap: 22px;
+      }
+
+      .tab-view.active {
+        display: flex;
+      }
+
+      .token-row {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+      }
+
+      label {
+        display: block;
+        font-size: 0.88rem;
+        color: #91a3d0;
+        margin-bottom: 6px;
+      }
+
+      input {
+        width: 100%;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        padding: 16px 18px;
+        color: #edf2ff;
+        font-size: 0.98rem;
+      }
+
+      input::placeholder {
+        color: rgba(255, 255, 255, 0.33);
+      }
+
+      .status {
+        display: grid;
+        gap: 6px;
+        text-align: right;
+      }
+
+      .status span {
+        display: block;
+        color: #b3c0e0;
+      }
+
+      .status .label {
+        color: #7d8dbb;
+        font-size: 0.85rem;
+      }
+
+      .chat-area {
+        position: relative;
+        flex: 1;
+      }
+
+      .chat-window {
+        height: 55vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 24px;
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .message {
+        display: grid;
+        gap: 10px;
+        max-width: 82%;
+        padding: 18px 22px;
+        border-radius: 22px;
+        line-height: 1.75;
+        font-size: 1rem;
+      }
+
+      .message.user {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        justify-self: end;
+      }
+
+      .message.assistant {
+        background: rgba(105, 125, 255, 0.12);
+        border: 1px solid rgba(105, 125, 255, 0.22);
+        justify-self: start;
+      }
+
+      .role {
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.58);
+      }
+
+      .content {
+        color: #eef3ff;
+        white-space: pre-wrap;
+      }
+
+      .composer {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: 1fr auto;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 96px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.035);
+        color: #eef4ff;
+        padding: 18px;
+        font-size: 1rem;
+        line-height: 1.6;
+        resize: vertical;
+      }
+
+      button {
+        border: none;
+        border-radius: 20px;
+        padding: 18px 26px;
+        cursor: pointer;
+        background: linear-gradient(135deg, #85a6ff, #9aebff);
+        color: #061323;
+        font-weight: 700;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      button:hover:not(:disabled) {
+        transform: translateY(-1px);
+      }
+
+      /* Admin Panel Layout Improvements */
+      .admin-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      @media (min-width: 900px) {
+        .admin-grid {
+          grid-template-columns: 350px 1fr;
+        }
+      }
+
+      .admin-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 24px;
+        padding: 24px;
+      }
+
+      .file-store-section {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 12px;
+      }
+
+      .section-header h2 {
+        margin: 0;
+        font-size: 1.3rem;
+        color: #edf2ff;
+      }
+
+      .table-container {
+        overflow-x: auto;
+        max-height: 50vh;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        font-size: 0.95rem;
+      }
+
+      th {
+        color: #7d8dbb;
+        font-weight: 600;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      td {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        color: #eef3ff;
+      }
+
+      tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .text-muted {
+        color: #7d8dbb;
+        font-size: 0.85rem;
+      }
+
+      .refresh-btn {
+        padding: 8px 16px;
+        font-size: 0.88rem;
+        border-radius: 12px;
+      }
+
+      @media (max-width: 800px) {
+        .card {
+          padding: 22px;
+        }
+        .token-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="client-shell">
+      <div class="card">
+        <div class="topbar">
+          <div>
+            <h1>arhamvijja chat agent</h1>
+            <p>Open your heart, ask from stillness, and receive the Gemini guide in a calm, streaming flow.</p>
+          </div>
+          <button id="newSession">New session</button>
+        </div>
+
+        <div class="tab-navigation">
+          <button class="tab-btn active" onclick="switchTab('appView')">App</button>
+          <button class="tab-btn" onclick="switchTab('adminView')">Admin</button>
+        </div>
+
+        <div id="appView" class="tab-view active">
+          <div class="token-row">
+            <div>
+              <label for="apiToken">API access token</label>
+              <input id="apiToken" type="password" placeholder="Paste api_access_token here" autocomplete="off" />
+            </div>
+            <div class="status">
+              <span class="label">session status</span>
+              <span id="statusText">session not started</span>
+              <span id="threadIdText"></span>
+            </div>
+          </div>
+
+          <div class="chat-area">
+            <div id="chatWindow" class="chat-window"></div>
+          </div>
+
+          <form id="chatForm" class="composer">
+            <textarea id="promptInput" placeholder="Type your question here and press send..." disabled></textarea>
+            <button id="sendButton" type="submit" disabled>Send</button>
+          </form>
+        </div>
+
+        <div id="adminView" class="tab-view">
+          <div class="admin-grid">
+            <div class="admin-card">
+              <h3 style="margin-top: 0; margin-bottom: 16px; color: #edf2ff;">Upload Controls</h3>
+              <label for="threadIdInput">Optional thread id</label>
+              <input id="threadIdInput" placeholder="paste thread id to associate files (optional)" style="margin-bottom: 14px;" />
+              
+              <label for="fileInput">Upload files to FileSearchStore</label>
+              <input id="fileInput" type="file" multiple style="margin-bottom: 14px;" />
+              
+              <div style="display:flex; flex-direction: column; gap:12px;">
+                <button id="uploadButton">Upload Files</button>
+                <span id="uploadStatus" style="color:#b3c0e0; font-size: 0.9rem;"></span>
+              </div>
+            </div>
+
+            <div class="admin-card file-store-section">
+              <div class="section-header">
+                <h2>FileSearchStore Registry</h2>
+                <button id="refreshFilesBtn" class="refresh-btn">Refresh List</button>
+              </div>
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>File Name</th>
+                      <th>File ID</th>
+                      <th>Size</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fileStoreTableBody">
+                    <tr>
+                      <td colspan="3" style="text-align: center; color: #7d8dbb; padding: 24px;">
+                        No files requested yet. Click 'Refresh List' to populate data.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      const apiToken = document.getElementById('apiToken');
+      const newSession = document.getElementById('newSession');
+      const statusText = document.getElementById('statusText');
+      const threadIdText = document.getElementById('threadIdText');
+      const chatWindow = document.getElementById('chatWindow');
+      const chatForm = document.getElementById('chatForm');
+      const promptInput = document.getElementById('promptInput');
+      const sendButton = document.getElementById('sendButton');
+
+      let threadId = '';
+      let currentAssistant = null;
+
+      // Tab switcher layout handler
+      function switchTab(viewId) {
+        document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        
+        document.getElementById(viewId).classList.add('active');
+        event.currentTarget.classList.add('active');
+
+        // Automatically pull dynamic files list when opening the Admin tab
+        if(viewId === 'adminView') {
+          fetchFileStoreList();
+        }
+      }
+
+      function setStatus(message) {
+        statusText.textContent = message;
+      }
+
+      function setComposer(enabled) {
+        promptInput.disabled = !enabled;
+        sendButton.disabled = !enabled;
+        if (enabled) promptInput.focus();
+      }
+
+      function createMessage(role, text) {
+        const container = document.createElement('div');
+        container.className = `message ${role}`;
+        const label = document.createElement('div');
+        label.className = 'role';
+        label.textContent = role === 'assistant' ? 'guide' : 'you';
+        const content = document.createElement('div');
+        content.className = 'content';
+        content.textContent = text;
+        container.append(label, content);
+        chatWindow.appendChild(container);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        return content;
+      }
+
+      function ensureToken() {
+        return {
+          'Content-Type': 'application/json',
+          api_access_token: apiToken.value.trim(),
+        };
+      }
+
+      async function startSession(isNew = false) {
+        setStatus('opening a sacred session...');
+        setComposer(false);
+        try {
+          const response = await fetch('https://ew6ncuetjrbgzw6bdklilvsqaa0wrqua.lambda-url.ca-central-1.on.aws/start_session', {
+            method: 'POST',
+            mode: 'cors',
+            headers: ensureToken(),
+            body: JSON.stringify({ is_start_new_session: isNew, assistant_id: 'arham-assitant' }),
+          });
+          const body = await response.json();
+          if (!response.ok) {
+            throw new Error(body.error || 'Could not start session');
+          }
+          threadId = body.thread_id;
+          threadIdText.textContent = `session ${threadId.slice(0, 8)}`;
+          setStatus('session ready');
+          chatWindow.innerHTML = '';
+          if (Array.isArray(body.chat_history)) {
+            body.chat_history.forEach((msg) => {
+              createMessage(msg.role, msg.content);
+            });
+          }
+          setComposer(true);
+        } catch (error) {
+          setStatus(error.message);
+          setComposer(false);
+        }
+      }
+
+      function parseSSE(chunk) {
+        const lines = chunk.split('\n');
+        const event = { event: '', data: '' };
+        for (const line of lines) {
+          if (line.startsWith('event:')) {
+            event.event = line.replace('event:', '').trim();
+          }
+          if (line.startsWith('data:')) {
+            event.data += line.replace('data:', '').trim();
+          }
+        }
+        return event;
+      }
+
+      async function sendMessage(message) {
+        if (!threadId) await startSession(true);
+        createMessage('user', message);
+        setComposer(false);
+        setStatus('receiving the response...');
+        currentAssistant = createMessage('assistant', '');
+
+        const response = await fetch('https://ew6ncuetjrbgzw6bdklilvsqaa0wrqua.lambda-url.ca-central-1.on.aws/send_message', {
+          method: 'POST',
+          mode: 'cors',
+          headers: ensureToken(),
+          body: JSON.stringify({ user_message: message, thread_id: threadId }),
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || 'Chat request failed');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let delimiter;
+          while ((delimiter = buffer.indexOf('\n\n')) !== -1) {
+            const raw = buffer.slice(0, delimiter);
+            buffer = buffer.slice(delimiter + 2);
+            const { event, data } = parseSSE(raw);
+            if (!data) continue;
+            const payload = JSON.parse(data);
+            if (event === 'chunk') {
+              currentAssistant.textContent += payload.text;
+              chatWindow.scrollTop = chatWindow.scrollHeight;
+            }
+            if (event === 'done') {
+              threadId = payload.thread_id || threadId;
+              threadIdText.textContent = `session ${threadId.slice(0, 8)}`;
+              setStatus('ready for your next prompt');
+            }
+            if (event === 'error') {
+              setStatus(payload.message || 'stream error');
+            }
+          }
+        }
+        if (buffer.trim()) {
+          const { event, data } = parseSSE(buffer.trim());
+          if (data) {
+            const payload = JSON.parse(data);
+            if (event === 'chunk') {
+              currentAssistant.textContent += payload.text;
+            }
+            if (event === 'done') {
+              threadId = payload.thread_id || threadId;
+              threadIdText.textContent = `session ${threadId.slice(0, 8)}`;
+              setStatus('ready for your next prompt');
+            }
+          }
+        }
+        setComposer(true);
+      }
+
+      chatForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const text = promptInput.value.trim();
+        if (!text) return;
+        promptInput.value = '';
+        try {
+          await sendMessage(text);
+        } catch (error) {
+          setStatus(error.message);
+          setComposer(true);
+        }
+      });
+
+      newSession.addEventListener('click', () => startSession(false));
+      promptInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          chatForm.requestSubmit();
+        }
+      });
+
+      // Admin panel element bindings
+      const fileInput = document.getElementById('fileInput');
+      const uploadButton = document.getElementById('uploadButton');
+      const uploadStatus = document.getElementById('uploadStatus');
+      const threadIdInput = document.getElementById('threadIdInput');
+      const fileStoreTableBody = document.getElementById('fileStoreTableBody');
+      const refreshFilesBtn = document.getElementById('refreshFilesBtn');
+
+      // Async action to fetch the list of files registered under the Assistant/File Search Store
+      async function fetchFileStoreList() {
+        const token = apiToken.value.trim();
+        if (!token) {
+          fileStoreTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #ff6b6b; padding: 24px;">API Token is required to fetch files.</td></tr>`;
+          return;
+        }
+
+        fileStoreTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #b3c0e0; padding: 24px;">Loading store records...</td></tr>`;
+
+        try {
+          // Adjust this routing URL parameter if your backend provides list_files on a distinct endpoint branch
+          const res = await fetch('https://ew6ncuetjrbgzw6bdklilvsqaa0wrqua.lambda-url.ca-central-1.on.aws/list_files', {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+              api_access_token: token,
+            }
+          });
+          
+          if (!res.ok) throw new Error(`Fetch error (${res.status})`);
+          
+          const data = await res.json();
+          fileStoreTableBody.innerHTML = '';
+
+          if (!data.files || data.files.length === 0) {
+            fileStoreTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #7d8dbb; padding: 24px;">No files found in FileSearchStore.</td></tr>`;
+            return;
+          }
+
+          data.files.forEach(file => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${file.filename || file.name || 'Unknown'}</td>
+              <td class="text-muted">${file.id || file.file_id || 'N/A'}</td>
+              <td class="text-muted">${file.bytes ? (file.bytes / 1024).toFixed(1) + ' KB' : 'N/A'}</td>
+            `;
+            fileStoreTableBody.appendChild(tr);
+          });
+
+        } catch (err) {
+          fileStoreTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #ff6b6b; padding: 24px;">${err.message || 'Error pulling document data.'}</td></tr>`;
+        }
+      }
+
+      async function uploadFiles() {
+        uploadStatus.textContent = '';
+        if (!apiToken.value.trim()) {
+          uploadStatus.textContent = 'API token required';
+          return;
+        }
+        if (!fileInput.files || fileInput.files.length === 0) {
+          uploadStatus.textContent = 'Select at least one file';
+          return;
+        }
+
+        const form = new FormData();
+        for (const f of fileInput.files) {
+          form.append('files', f, f.name);
+        }
+        const threadIdToSend = threadIdInput.value.trim();
+        if (threadIdToSend) form.append('thread_id', threadIdToSend);
+
+        uploadButton.disabled = true;
+        uploadStatus.textContent = 'uploading...';
+
+        try {
+          const res = await fetch('https://ew6ncuetjrbgzw6bdklilvsqaa0wrqua.lambda-url.ca-central-1.on.aws/upload_file', {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+              api_access_token: apiToken.value.trim(),
+            },
+            body: form,
+          });
+          const body = await res.json().catch(() => null);
+          if (!res.ok) {
+            uploadStatus.textContent = (body && body.error) || `Upload failed (${res.status})`;
+          } else {
+            uploadStatus.textContent = (body && body.message) || 'Upload successful';
+            fileInput.value = '';
+            // Instantly refresh the files display table upon successful uploads
+            fetchFileStoreList();
+          }
+        } catch (err) {
+          uploadStatus.textContent = err.message || 'Upload error';
+        } finally {
+          uploadButton.disabled = false;
+        }
+      }
+
+      uploadButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        uploadFiles();
+      });
+
+      refreshFilesBtn.addEventListener('click', () => {
+        fetchFileStoreList();
+      });
+    </script>
+  </body>
+</html>
