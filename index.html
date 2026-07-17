@@ -351,8 +351,8 @@
         <div id="appView" class="tab-view active">
           <div class="token-row">
             <div>
-              <label for="apiToken">API access token</label>
-              <input id="apiToken" type="password" placeholder="Paste api_access_token here" autocomplete="off" />
+              <label>API access token</label>
+              <div style="color: #b3c0e0; font-size: 0.9rem;">Using a hardcoded token for this client.</div>
             </div>
             <div class="status">
               <span class="label">session status</span>
@@ -473,7 +473,7 @@
       function ensureToken() {
         return {
           'Content-Type': 'application/json',
-          api_access_token: apiToken.value.trim(),
+          api_access_token: apiToken.trim(),
         };
       }
 
@@ -598,7 +598,8 @@
         }
       });
 
-      newSession.addEventListener('click', () => startSession(false));
+      //resumeSession.addEventListener('click', () => startSession(false));
+      newSession.addEventListener('click', () => startSession(true));
       promptInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
           event.preventDefault();
@@ -616,7 +617,7 @@
 
       // Async action to fetch the list of files registered under the Assistant/File Search Store
       async function fetchFileStoreList() {
-        const token = apiToken.value.trim();
+        const token = apiToken.trim();
         if (!token) {
           fileStoreTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #ff6b6b; padding: 24px;">API Token is required to fetch files.</td></tr>`;
           return;
@@ -667,7 +668,7 @@
 
       async function uploadFiles() {
         uploadStatus.textContent = '';
-        if (!apiToken.value.trim()) {
+        if (!apiToken.trim()) {
           uploadStatus.textContent = 'API token required';
           return;
         }
@@ -691,7 +692,7 @@
             method: 'POST',
             mode: 'cors',
             headers: {
-              api_access_token: apiToken.value.trim(),
+              api_access_token: apiToken.trim(),
             },
             body: form,
           });
@@ -737,7 +738,7 @@
             mode: 'cors',
             headers: {
               'Content-Type': 'application/json',
-              api_access_token: apiToken.value.trim(),
+              api_access_token: apiToken.trim(),
             },
             body: JSON.stringify({ document_name: documentName }),
           });
