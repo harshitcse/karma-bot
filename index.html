@@ -532,7 +532,7 @@
           method: 'POST',
           mode: 'cors',
           headers: ensureToken(),
-          body: JSON.stringify({ user_message: message, thread_id: threadId }),
+          body: JSON.stringify({ user_message: message, thread_id: threadId , assistant_id: 'arham-assitant'}),
         });
         if (!response.ok) {
           const text = await response.text();
