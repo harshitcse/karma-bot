@@ -481,7 +481,7 @@
         setStatus('opening a sacred session...');
         setComposer(false);
         try {
-          const response = await fetch('https://ew6ncuetjrbgzw6bdklilvsqaa0wrqua.lambda-url.ca-central-1.on.aws/start_session', {
+          const response = await fetch('https://3ggvwxnv7q4nwgfji6lz3u6igi0eypvx.lambda-url.ca-central-1.on.aws/start_session', {
             method: 'POST',
             mode: 'cors',
             headers: ensureToken(),
@@ -528,11 +528,11 @@
         setStatus('receiving the response...');
         currentAssistant = createMessage('assistant', '');
 
-        const response = await fetch('https://ew6ncuetjrbgzw6bdklilvsqaa0wrqua.lambda-url.ca-central-1.on.aws/send_message', {
+        const response = await fetch('https://3ggvwxnv7q4nwgfji6lz3u6igi0eypvx.lambda-url.ca-central-1.on.aws/send_message', {
           method: 'POST',
           mode: 'cors',
           headers: ensureToken(),
-          body: JSON.stringify({ user_message: message, thread_id: threadId , assistant_id: 'arham-assitant'}),
+          body: JSON.stringify({ user_message: message, thread_id: threadId}),
         });
         if (!response.ok) {
           const text = await response.text();
@@ -627,7 +627,7 @@
 
         try {
           // Adjust this routing URL parameter if your backend provides list_files on a distinct endpoint branch
-          const res = await fetch('https://ew6ncuetjrbgzw6bdklilvsqaa0wrqua.lambda-url.ca-central-1.on.aws/list_files', {
+          const res = await fetch('https://3ggvwxnv7q4nwgfji6lz3u6igi0eypvx.lambda-url.ca-central-1.on.aws/list_files', {
             method: 'GET',
             mode: 'cors',
             headers: {
@@ -688,7 +688,7 @@
         uploadStatus.textContent = 'uploading...';
 
         try {
-          const res = await fetch('https://ew6ncuetjrbgzw6bdklilvsqaa0wrqua.lambda-url.ca-central-1.on.aws/upload_file', {
+          const res = await fetch('https://3ggvwxnv7q4nwgfji6lz3u6igi0eypvx.lambda-url.ca-central-1.on.aws/upload_file', {
             method: 'POST',
             mode: 'cors',
             headers: {
@@ -733,7 +733,7 @@
         event.target.textContent = 'Deleting...';
 
         try {
-          const res = await fetch('https://ew6ncuetjrbgzw6bdklilvsqaa0wrqua.lambda-url.ca-central-1.on.aws/delete_file', {
+          const res = await fetch('https://3ggvwxnv7q4nwgfji6lz3u6igi0eypvx.lambda-url.ca-central-1.on.aws/delete_file', {
             method: 'POST',
             mode: 'cors',
             headers: {
